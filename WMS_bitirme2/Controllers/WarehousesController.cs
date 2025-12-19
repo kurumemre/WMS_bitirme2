@@ -95,6 +95,10 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
+            // Edit yaparken validasyon hatası kalkması için:
+            ModelState.Remove("Shelves");
+
+
             if (ModelState.IsValid)
             {
                 try

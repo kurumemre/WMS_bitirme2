@@ -117,6 +117,10 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
+            // Edit işleminde de validasyon hatası önlendi
+            ModelState.Remove("Product");
+            ModelState.Remove("Shelf");
+
             if (ModelState.IsValid)
             {
                 try
@@ -180,6 +184,43 @@ namespace WMS_bitirme2.Controllers
         private bool StockMovementExists(int id)
         {
             return _context.StockMovements.Any(e => e.Id == id);
+        }
+
+
+
+        //
+        // GET: StockMovements/Rapor
+        public async Task<IActionResult> Rapor()
+        {
+            // 1. Veritabanından tüm hareketleri (Ürün, Raf ve Depo bilgileriyle) çek
+            var hareketler = await _context.StockMovements
+                .Include(s => s.Product)
+                .Include(s => s.Shelf)
+                .ThenInclude(r => r.Warehouse) // Rafın içinden Depoya ulaşıyoruz
+                .ToListAsync();
+
+            // 2. Verileri Grupla ve Hesapla (LINQ Büyüsü )
+            var raporListesi = hareketler
+                .GroupBy(x => new { x.Product.Ad, x.Shelf.Kod, x.Shelf.Warehouse.Sehir }) // Neye göre gruplayalım? (Ürün + Raf)
+                .Select(g => new StockReportViewModel
+                {
+                    UrunAdi = g.Key.Ad,
+                    RafKodu = g.Key.Kod,
+                    DepoAdi = g.Key.Sehir, // Deponun Şehir bilgisini veya Adını kullanabilirsin
+
+                    // Girişlerin toplamını al
+                    ToplamGiris = g.Where(x => x.HareketTipi == MovementType.Giris).Sum(x => x.Miktar),
+
+                    // Çıkışların toplamını al
+                    ToplamCikis = g.Where(x => x.HareketTipi == MovementType.Cikis).Sum(x => x.Miktar),
+
+                    // Giriş - Çıkış = Mevcut Stok
+                    MevcutStok = g.Where(x => x.HareketTipi == MovementType.Giris).Sum(x => x.Miktar)
+                               - g.Where(x => x.HareketTipi == MovementType.Cikis).Sum(x => x.Miktar)
+                })
+                .ToList();
+
+            return View(raporListesi);
         }
     }
 }

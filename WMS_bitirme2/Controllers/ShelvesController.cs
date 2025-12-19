@@ -101,6 +101,9 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
+            // Edit yaparken de aynı şekilde ModelState'ten Warehouse nesnesini kaldırıyoruz.
+            ModelState.Remove("Warehouse");
+
             if (ModelState.IsValid)
             {
                 try

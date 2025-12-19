@@ -1,32 +1,41 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using WMS_bitirme2.Models;
+using Microsoft.EntityFrameworkCore; // Include için gerekli
+using System.Linq;
+using System.Threading.Tasks;
+using WMS_bitirme2.Data; // DbContext için
+using WMS_bitirme2.Models; // Modeller için
 
 namespace WMS_bitirme2.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        // Veritabaný baðlantýsýný buraya çaðýrýyoruz
+        private readonly WMSDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(WMSDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            // Verileri topluyoruz
+            var model = new DashboardViewModel
+            {
+                ToplamUrunSayisi = await _context.Products.CountAsync(),
+                ToplamDepoSayisi = await _context.Warehouses.CountAsync(),
+                ToplamRafSayisi = await _context.Shelves.CountAsync(),
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+                // Son 5 hareketi getir (Tarihe göre tersten sýrala)
+                SonHareketler = await _context.StockMovements
+                                      .Include(x => x.Product)
+                                      .Include(x => x.Shelf)
+                                      .OrderByDescending(x => x.Tarih)
+                                      .Take(5)
+                                      .ToListAsync()
+            };
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(model);
         }
     }
 }

@@ -1,8 +1,86 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model WMS_bitirme2.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Yönetim Paneli";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-4">
+    <h1 class="display-4">Depo Yönetim Sistemi</h1>
+    <p class="text-muted">Hoşgeldiniz, sistem özeti aşağıdadır.</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3 shadow">
+            <div class="card-header">Toplam Ürün</div>
+            <div class="card-body">
+                <h2 class="card-title">📦 @Model.ToplamUrunSayisi</h2>
+                <p class="card-text">Sistemde kayıtlı ürün çeşidi.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3 shadow">
+            <div class="card-header">Aktif Depolar</div>
+            <div class="card-body">
+                <h2 class="card-title">🏭 @Model.ToplamDepoSayisi</h2>
+                <p class="card-text">Yönetilen toplam depo sayısı.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3 shadow">
+            <div class="card-header">Raf Kapasitesi</div>
+            <div class="card-body">
+                <h2 class="card-title">🗄️ @Model.ToplamRafSayisi</h2>
+                <p class="card-text">Tanımlanmış raf sayısı.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-dark text-white">
+        <i class="fas fa-history"></i> Son Stok Hareketleri
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Ürün</th>
+                    <th>İşlem</th>
+                    <th>Miktar</th>
+                    <th>Raf</th>
+                    <th>Tarih</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.SonHareketler)
+                {
+                    <tr>
+                        <td><strong>@item.Product.Ad</strong></td>
+                        <td>
+                            @if (item.HareketTipi == WMS_bitirme2.Models.MovementType.Giris)
+                            {
+                                <span class="badge badge-success" style="background-color:green; color:white; padding:5px;">GİRİŞ</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger" style="background-color:red; color:white; padding:5px;">ÇIKIŞ</span>
+                            }
+                        </td>
+                        <td>@item.Miktar</td>
+                        <td>@item.Shelf.Kod</td>
+                        <td>@item.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (Model.SonHareketler.Count == 0)
+        {
+            <div class="alert alert-warning mt-2">Henüz işlem kaydı yok.</div>
+        }
+    </div>
 </div>
