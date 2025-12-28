@@ -10,22 +10,22 @@ using WMS_bitirme2.Models;
 
 namespace WMS_bitirme2.Controllers
 {
-    public class ProductsController : Controller
+    public class UnitsController : Controller
     {
         private readonly WMSDbContext _context;
 
-        public ProductsController(WMSDbContext context)
+        public UnitsController(WMSDbContext context)
         {
             _context = context;
         }
 
-        // GET: Products
+        // GET: Units
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            return View(await _context.Units.ToListAsync());
         }
 
-        // GET: Products/Details/5
+        // GET: Units/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,41 +33,39 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var unit = await _context.Units
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (unit == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(unit);
         }
 
-        // GET: Products/Create
+        // GET: Units/Create
         public IActionResult Create()
         {
-            //Kategorileri sayfaya taşır
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Ad");
             return View();
         }
 
-        // POST: Products/Create
+        // POST: Units/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BarkodNo,Ad,Tanim,Fiyat,StokMiktari,BrandId,CategoryId,UnitId")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Ad,Kisaltma")] Unit unit)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(unit);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(unit);
         }
 
-        // GET: Products/Edit/5
+        // GET: Units/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -75,22 +73,22 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            var unit = await _context.Units.FindAsync(id);
+            if (unit == null)
             {
                 return NotFound();
             }
-            return View(product);
+            return View(unit);
         }
 
-        // POST: Products/Edit/5
+        // POST: Units/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BarkodNo,Ad,Tanim,Fiyat,StokMiktari")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Ad,Kisaltma")] Unit unit)
         {
-            if (id != product.Id)
+            if (id != unit.Id)
             {
                 return NotFound();
             }
@@ -99,12 +97,12 @@ namespace WMS_bitirme2.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(unit);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!UnitExists(unit.Id))
                     {
                         return NotFound();
                     }
@@ -115,10 +113,10 @@ namespace WMS_bitirme2.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(unit);
         }
 
-        // GET: Products/Delete/5
+        // GET: Units/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -126,34 +124,34 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var unit = await _context.Units
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (unit == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(unit);
         }
 
-        // POST: Products/Delete/5
+        // POST: Units/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            var unit = await _context.Units.FindAsync(id);
+            if (unit != null)
             {
-                _context.Products.Remove(product);
+                _context.Units.Remove(unit);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
+        private bool UnitExists(int id)
         {
-            return _context.Products.Any(e => e.Id == id);
+            return _context.Units.Any(e => e.Id == id);
         }
     }
 }

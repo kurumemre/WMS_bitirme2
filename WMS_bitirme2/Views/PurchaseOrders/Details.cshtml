@@ -1,0 +1,97 @@
+﻿@model WMS_bitirme2.Models.PurchaseOrder
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>PurchaseOrder</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.OrderCode)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.OrderCode)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Supplier)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Supplier.Email)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.OrderDate)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.OrderDate)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Status)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Status)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Notes)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Notes)
+        </dd>
+    </dl>
+</div>
+
+<h3>Sipariş İçeriği (Ürünler)</h3>
+
+<div class="mb-3">
+    <a asp-controller="PurchaseOrderItems" asp-action="Create"
+       asp-route-purchaseOrderId="@Model.Id" class="btn btn-success">
+        + Bu Siparişe Ürün Ekle
+    </a>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>Miktar</th>
+            <th>Birim Fiyat</th>
+            <th>Satır Toplamı</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Items != null && Model.Items.Count > 0)
+        {
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.Product?.Ad</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("C2")</td>
+                    <td>@item.LineTotal.ToString("C2")</td>
+                    <td>
+                        <a asp-controller="PurchaseOrderItems" asp-action="Delete" asp-route-id="@item.Id" class="text-danger">Sil</a>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td colspan="3" class="text-end"><strong>GENEL TOPLAM:</strong></td>
+                <td><strong>@Model.Items.Sum(x => x.LineTotal).ToString("C2")</strong></td>
+                <td></td>
+            </tr>
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center">Henüz bu siparişe ürün eklenmemiş.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

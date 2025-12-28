@@ -28,6 +28,19 @@
                 <span asp-validation-for="Tanim" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label class="control-label">Kategori Seç</label>
+                <select id="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
+                    <option value="">-- Kategori Seçiniz --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="BrandId" class="control-label">Marka</label>
+                <select asp-for="BrandId" class="form-control" id="BrandId">
+                    <option value="">-- Önce Kategori Seçiniz --</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label asp-for="Fiyat" class="control-label"></label>
                 <input asp-for="Fiyat" class="form-control" />
                 <span asp-validation-for="Fiyat" class="text-danger"></span>
@@ -50,4 +63,43 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Kategori seçildiğinde çalışacak kod
+            $('#CategoryId').change(function () {
+                var secilenKategoriId = $(this).val(); // Seçilen ID'yi al
+
+                // Marka kutusunu temizle ve "Yükleniyor..." yaz
+                $('#BrandId').empty();
+                $('#BrandId').append('<option value="">Yükleniyor...</option>');
+
+                if (secilenKategoriId != "") {
+                    // AJAX İsteği Başlıyor (Garson mutfağa koşuyor)
+                    $.ajax({
+                        type: 'GET',
+                        url: '/api/BrandsApi/GetBrands/' + secilenKategoriId, // Senin API Adresin
+                        dataType: 'json',
+                        success: function (data) {
+                            // Gelen veriyi (data) döngüyle kutuya ekle
+                            $('#BrandId').empty();
+                            $('#BrandId').append('<option value="">-- Marka Seçiniz --</option>');
+
+                            $.each(data, function (i, marka) {
+                                $('#BrandId').append('<option value="' + marka.id + '">' + marka.ad + '</option>');
+                            });
+                        },
+                        error: function (ex) {
+                            alert('Markalar getirilirken hata oluştu: ' + ex);
+                        }
+                    });
+                } else {
+                    // Kategori seçimi iptal edilirse markayı da temizle
+                    $('#BrandId').empty();
+                    $('#BrandId').append('<option value="">-- Önce Kategori Seçiniz --</option>');
+                }
+            });
+        });
+    </script>
+
 }

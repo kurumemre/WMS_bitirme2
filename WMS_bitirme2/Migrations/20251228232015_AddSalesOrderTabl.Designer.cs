@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMS_bitirme2.Data;
 
@@ -11,9 +12,11 @@ using WMS_bitirme2.Data;
 namespace WMS_bitirme2.Migrations
 {
     [DbContext(typeof(WMSDbContext))]
-    partial class WMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251228232015_AddSalesOrderTabl")]
+    partial class AddSalesOrderTabl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMS_bitirme2.Data;
 
@@ -11,9 +12,11 @@ using WMS_bitirme2.Data;
 namespace WMS_bitirme2.Migrations
 {
     [DbContext(typeof(WMSDbContext))]
-    partial class WMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251222155913_FixTableNames")]
+    partial class FixTableNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -263,38 +266,6 @@ namespace WMS_bitirme2.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("WMS_bitirme2.Models.Customer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContactPerson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TaxNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Customers");
-                });
-
             modelBuilder.Entity("WMS_bitirme2.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -339,126 +310,6 @@ namespace WMS_bitirme2.Migrations
                     b.HasIndex("UnitId");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.PurchaseOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrderCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("PurchaseOrders");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.PurchaseOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PurchaseOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("PurchaseOrderId");
-
-                    b.ToTable("PurchaseOrderItems");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.SalesOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrderCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("SalesOrders");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.SalesOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SalesOrderId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("SalesOrderId");
-
-                    b.ToTable("SalesOrderItems");
                 });
 
             modelBuilder.Entity("WMS_bitirme2.Models.Shelf", b =>
@@ -516,37 +367,6 @@ namespace WMS_bitirme2.Migrations
                     b.HasIndex("ShelfId");
 
                     b.ToTable("StockMovements");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.Supplier", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContactPerson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("WMS_bitirme2.Models.Unit", b =>
@@ -678,66 +498,6 @@ namespace WMS_bitirme2.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("WMS_bitirme2.Models.PurchaseOrder", b =>
-                {
-                    b.HasOne("WMS_bitirme2.Models.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.PurchaseOrderItem", b =>
-                {
-                    b.HasOne("WMS_bitirme2.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WMS_bitirme2.Models.PurchaseOrder", "PurchaseOrder")
-                        .WithMany("Items")
-                        .HasForeignKey("PurchaseOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("PurchaseOrder");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.SalesOrder", b =>
-                {
-                    b.HasOne("WMS_bitirme2.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.SalesOrderItem", b =>
-                {
-                    b.HasOne("WMS_bitirme2.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WMS_bitirme2.Models.SalesOrder", "SalesOrder")
-                        .WithMany("Items")
-                        .HasForeignKey("SalesOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("SalesOrder");
-                });
-
             modelBuilder.Entity("WMS_bitirme2.Models.Shelf", b =>
                 {
                     b.HasOne("WMS_bitirme2.Models.Warehouse", "Warehouse")
@@ -776,16 +536,6 @@ namespace WMS_bitirme2.Migrations
             modelBuilder.Entity("WMS_bitirme2.Models.Category", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.PurchaseOrder", b =>
-                {
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("WMS_bitirme2.Models.SalesOrder", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("WMS_bitirme2.Models.Unit", b =>

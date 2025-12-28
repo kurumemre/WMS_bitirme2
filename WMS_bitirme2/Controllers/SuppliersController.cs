@@ -10,22 +10,22 @@ using WMS_bitirme2.Models;
 
 namespace WMS_bitirme2.Controllers
 {
-    public class ProductsController : Controller
+    public class SuppliersController : Controller
     {
         private readonly WMSDbContext _context;
 
-        public ProductsController(WMSDbContext context)
+        public SuppliersController(WMSDbContext context)
         {
             _context = context;
         }
 
-        // GET: Products
+        // GET: Suppliers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            return View(await _context.Suppliers.ToListAsync());
         }
 
-        // GET: Products/Details/5
+        // GET: Suppliers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,41 +33,39 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var supplier = await _context.Suppliers
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (supplier == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(supplier);
         }
 
-        // GET: Products/Create
+        // GET: Suppliers/Create
         public IActionResult Create()
         {
-            //Kategorileri sayfaya taşır
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Ad");
             return View();
         }
 
-        // POST: Products/Create
+        // POST: Suppliers/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BarkodNo,Ad,Tanim,Fiyat,StokMiktari,BrandId,CategoryId,UnitId")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,ContactPerson,Email,Phone,Address")] Supplier supplier)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(supplier);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(supplier);
         }
 
-        // GET: Products/Edit/5
+        // GET: Suppliers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -75,22 +73,22 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            var supplier = await _context.Suppliers.FindAsync(id);
+            if (supplier == null)
             {
                 return NotFound();
             }
-            return View(product);
+            return View(supplier);
         }
 
-        // POST: Products/Edit/5
+        // POST: Suppliers/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BarkodNo,Ad,Tanim,Fiyat,StokMiktari")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ContactPerson,Email,Phone,Address")] Supplier supplier)
         {
-            if (id != product.Id)
+            if (id != supplier.Id)
             {
                 return NotFound();
             }
@@ -99,12 +97,12 @@ namespace WMS_bitirme2.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(supplier);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!SupplierExists(supplier.Id))
                     {
                         return NotFound();
                     }
@@ -115,10 +113,10 @@ namespace WMS_bitirme2.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(supplier);
         }
 
-        // GET: Products/Delete/5
+        // GET: Suppliers/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -126,34 +124,34 @@ namespace WMS_bitirme2.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var supplier = await _context.Suppliers
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (supplier == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(supplier);
         }
 
-        // POST: Products/Delete/5
+        // POST: Suppliers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            var supplier = await _context.Suppliers.FindAsync(id);
+            if (supplier != null)
             {
-                _context.Products.Remove(product);
+                _context.Suppliers.Remove(supplier);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
+        private bool SupplierExists(int id)
         {
-            return _context.Products.Any(e => e.Id == id);
+            return _context.Suppliers.Any(e => e.Id == id);
         }
     }
 }
