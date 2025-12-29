@@ -1,41 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Include için gerekli
+using WMS_bitirme2.Data;
+using WMS_bitirme2.Models;
 using System.Linq;
-using System.Threading.Tasks;
-using WMS_bitirme2.Data; // DbContext için
-using WMS_bitirme2.Models; // Modeller için
 
 namespace WMS_bitirme2.Controllers
 {
     public class HomeController : Controller
     {
-        // Veritabaný baðlantýsýný buraya çaðýrýyoruz
         private readonly WMSDbContext _context;
 
+        // Constructor'da veritabanýný baðlýyoruz
         public HomeController(WMSDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            // Verileri topluyoruz
-            var model = new DashboardViewModel
-            {
-                ToplamUrunSayisi = await _context.Products.CountAsync(),
-                ToplamDepoSayisi = await _context.Warehouses.CountAsync(),
-                ToplamRafSayisi = await _context.Shelves.CountAsync(),
+            // Ýstatistikleri hesaplayýp çantaya (ViewBag) atýyoruz
 
-                // Son 5 hareketi getir (Tarihe göre tersten sýrala)
-                SonHareketler = await _context.StockMovements
-                                      .Include(x => x.Product)
-                                      .Include(x => x.Shelf)
-                                      .OrderByDescending(x => x.Tarih)
-                                      .Take(5)
-                                      .ToListAsync()
-            };
+            // 1. Toplam Ürün Çeþidi
+            ViewBag.UrunCesidi = _context.Products.Count();
 
-            return View(model);
+            // 2. Toplam Stok Adedi (Tüm ürünlerin stoklarýnýn toplamý)
+            // Eðer veritabaný boþsa hata vermesin diye (int?) nullable yaptýk
+            ViewBag.ToplamStok = _context.Products.Sum(x => (int?)x.StokMiktari) ?? 0;
+
+            // 3. Bekleyen (Hazýrlanýyor) Satýn Alma Sipariþleri
+            ViewBag.BekleyenAlim = _context.PurchaseOrders.Count(x => x.Status == PurchaseOrderStatus.Hazirlaniyor);
+
+            // 4. Bekleyen (Hazýrlanýyor) Satýþ Sipariþleri
+            ViewBag.BekleyenSatis = _context.SalesOrders.Count(x => x.Status == SalesOrderStatus.Hazirlaniyor);
+
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
         }
     }
 }

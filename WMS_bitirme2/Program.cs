@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using Microsoft.AspNetCore.Identity; // <--- 1. YENÝ EKLENEN KÜTÜPHANE
+using Microsoft.AspNetCore.Identity; // <--- 1. YENï¿½ EKLENEN Kï¿½Tï¿½PHANE
 
 namespace WMS_bitirme2
 {
@@ -14,12 +14,12 @@ namespace WMS_bitirme2
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // 1. Veritabaný Servisini Ekliyoruz
+            // 1. Veritabanï¿½ Servisini Ekliyoruz
             builder.Services.AddDbContext<WMSDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // ==================================================================
-            // 2. IDENTITY (ÜYELÝK) SERVÝSÝNÝ BURAYA EKLÝYORUZ (YENÝ KISIM) ??
+            // 2. IDENTITY (ï¿½YELï¿½K) SERVï¿½Sï¿½Nï¿½ BURAYA EKLï¿½YORUZ (YENï¿½ KISIM) ??
             // ==================================================================
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<WMSDbContext>();
@@ -30,7 +30,7 @@ namespace WMS_bitirme2
 
             var app = builder.Build();
 
-            // HTTP istek hattý (Pipeline) ayarlarý
+            // HTTP istek hattï¿½ (Pipeline) ayarlarï¿½
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -43,8 +43,8 @@ namespace WMS_bitirme2
             app.UseRouting();
 
             // ==================================================================
-            // 3. KÝMLÝK DOÐRULAMAYI BURAYA EKLÝYORUZ (YENÝ KISIM) ??
-            // (Authorization'dan ÖNCE gelmek zorunda!)
+            // 3. Kï¿½MLï¿½K DOï¿½RULAMAYI BURAYA EKLï¿½YORUZ (YENï¿½ KISIM) ??
+            // (Authorization'dan ï¿½NCE gelmek zorunda!)
             // ==================================================================
             app.UseAuthentication();
             app.UseAuthorization();
@@ -53,7 +53,7 @@ namespace WMS_bitirme2
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            // Identity sayfalarý için gerekli route haritalamasý
+            // Identity sayfalarï¿½ iï¿½in gerekli route haritalamasï¿½
             app.MapRazorPages();
 
             app.Run();
