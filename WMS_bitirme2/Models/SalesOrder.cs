@@ -26,5 +26,11 @@ namespace WMS_bitirme2.Models
 
         // Siparişin detayları (Satırlar)
         public List<SalesOrderItem>? Items { get; set; }
+
+        // ✅ BU İKİSİNİ EKLE:
+        [Display(Name = "Çıkış Yapılacak Depo")]
+        public int WarehouseId { get; set; }
+
+        public Warehouse? Warehouse { get; set; } // Soru işareti koyabilirsin veya koymayabilirsin
     }
 }

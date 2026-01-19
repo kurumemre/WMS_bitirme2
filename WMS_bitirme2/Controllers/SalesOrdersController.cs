@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class SalesOrdersController : Controller
     {
         private readonly WMSDbContext _context;
@@ -50,23 +52,32 @@ namespace WMS_bitirme2.Controllers
         public IActionResult Create()
         {
             ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name");
+
+            // ✅ EKSİK OLAN BU SATIRI EKLE:
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad");
+
             return View();
         }
 
         // POST: SalesOrders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,OrderCode,CustomerId,OrderDate,Status,Notes")] SalesOrder salesOrder)
+        // ✅ DÜZELTME 1: Bind içine WarehouseId eklendi
+        public async Task<IActionResult> Create([Bind("Id,OrderCode,CustomerId,OrderDate,Status,Notes,WarehouseId")] SalesOrder salesOrder)
         {
+            // Navigation property çakışmasını önle
+            salesOrder.Warehouse = null;
+
             if (ModelState.IsValid)
             {
                 _context.Add(salesOrder);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // ✅ DÜZELTME 2: Dropdownlar tekrar dolduruluyor (Hata olursa sayfa boş gelmesin)
             ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", salesOrder.CustomerId);
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad", salesOrder.WarehouseId); // EKLENDİ
             return View(salesOrder);
         }
 
@@ -88,11 +99,9 @@ namespace WMS_bitirme2.Controllers
         }
 
         // POST: SalesOrders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,OrderCode,CustomerId,OrderDate,Status,Notes")] SalesOrder salesOrder)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,OrderCode,CustomerId,OrderDate,Status,Notes,WarehouseId")] SalesOrder salesOrder)
         {
             if (id != salesOrder.Id) return NotFound();
 
@@ -104,10 +113,29 @@ namespace WMS_bitirme2.Controllers
                     var eskiSiparis = await _context.SalesOrders.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
                     var siparisDetaylari = _context.SalesOrderItems.Where(x => x.SalesOrderId == id).ToList();
 
-                    // SENARYO A: Satış Yapıldı (Stoktan DÜŞ -)
+                    // ---------------------------------------------------------
+                    // SENARYO A: Satış Tamamlanıyor (Stoktan DÜŞ -)
                     // Hazırlanıyor -> Tamamlandı
+                    // ---------------------------------------------------------
                     if (eskiSiparis.Status != SalesOrderStatus.Tamamlandi && salesOrder.Status == SalesOrderStatus.Tamamlandi)
                     {
+                        // 🔥 KRİTİK KONTROL: Önce Stok Yeterli mi diye bak!
+                        foreach (var kalem in siparisDetaylari)
+                        {
+                            var urunKontrol = await _context.Products.FindAsync(kalem.ProductId);
+                            if (urunKontrol != null && urunKontrol.StokMiktari < kalem.Quantity)
+                            {
+                                // HATA FIRLAT VE DURDUR!
+                                ModelState.AddModelError("", $"HATA: '{urunKontrol.Ad}' ürünü için stok yetersiz! (Mevcut: {urunKontrol.StokMiktari}, İstenen: {kalem.Quantity})");
+
+                                // Dropdownları doldur ve sayfayı geri gönder
+                                ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", salesOrder.CustomerId);
+                                ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad", salesOrder.WarehouseId);
+                                return View(salesOrder);
+                            }
+                        }
+
+                        // Stok Yeterliyse Düşüşü Yap
                         foreach (var kalem in siparisDetaylari)
                         {
                             var urun = await _context.Products.FindAsync(kalem.ProductId);
@@ -115,11 +143,25 @@ namespace WMS_bitirme2.Controllers
                             {
                                 urun.StokMiktari -= kalem.Quantity; // AZALT 📉
                                 _context.Update(urun);
+
+                                // ✅ YENİ: STOK HAREKETİ KAYDET (ÇIKIŞ)
+                                var hareket = new StockMovement
+                                {
+                                    ProductId = kalem.ProductId,
+                                    ShelfId = null, // Satışta raf seçimi şimdilik yok
+                                    Miktar = kalem.Quantity,
+                                    HareketTipi = MovementType.Cikis,
+                                    Tarih = DateTime.Now
+                                };
+                                _context.Add(hareket);
                             }
                         }
                     }
+
+                    // ---------------------------------------------------------
                     // SENARYO B: İptal/İade (Stoku GERİ YÜKLE +)
                     // Tamamlandı -> Hazırlanıyor/İptal
+                    // ---------------------------------------------------------
                     else if (eskiSiparis.Status == SalesOrderStatus.Tamamlandi && salesOrder.Status != SalesOrderStatus.Tamamlandi)
                     {
                         foreach (var kalem in siparisDetaylari)
@@ -129,9 +171,21 @@ namespace WMS_bitirme2.Controllers
                             {
                                 urun.StokMiktari += kalem.Quantity; // ARTTIR (İade al) 📈
                                 _context.Update(urun);
+
+                                // ✅ YENİ: STOK HAREKETİ KAYDET (GİRİŞ - İADE)
+                                var hareket = new StockMovement
+                                {
+                                    ProductId = kalem.ProductId,
+                                    ShelfId = null,
+                                    Miktar = kalem.Quantity,
+                                    HareketTipi = MovementType.Giris, // Mal geri geldi
+                                    Tarih = DateTime.Now
+                                };
+                                _context.Add(hareket);
                             }
                         }
                     }
+                    // ---------------------------------------------------------
 
                     _context.Update(salesOrder);
                     await _context.SaveChangesAsync();
@@ -143,7 +197,10 @@ namespace WMS_bitirme2.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            // Hata durumunda dropdownları doldur
             ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", salesOrder.CustomerId);
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad", salesOrder.WarehouseId);
             return View(salesOrder);
         }
 

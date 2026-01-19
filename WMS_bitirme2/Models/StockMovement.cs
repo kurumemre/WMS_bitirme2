@@ -19,8 +19,8 @@ namespace WMS_bitirme2.Models
         public Product Product { get; set; }
 
         // --- HANGİ RAF? ---
-        public int ShelfId { get; set; }
-        public Shelf Shelf { get; set; }
+        public int? ShelfId { get; set; }
+        public Shelf? Shelf { get; set; }
 
         // --- DETAYLAR ---
         public int Miktar { get; set; } // Kaç adet?

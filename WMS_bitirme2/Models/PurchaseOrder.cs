@@ -7,7 +7,7 @@ namespace WMS_bitirme2.Models
         public int Id { get; set; }
 
         [Display(Name = "Sipariş Kodu")]
-        public string OrderCode { get; set; } // Örn: PO-2023-001 (Otomatik üreteceğiz)
+        public string OrderCode { get; set; } = string.Empty;
 
         [Display(Name = "Tedarikçi")]
         public int SupplierId { get; set; }
@@ -25,5 +25,10 @@ namespace WMS_bitirme2.Models
 
         // Bu siparişin içindeki ürünler 
         public List<PurchaseOrderItem>? Items { get; set; }
+
+        // ✅ BURASI DEĞİŞTİ: int? nullable yaptık
+        [Display(Name = "Depo")]
+        public int WarehouseId { get; set; }
+        public Warehouse? Warehouse { get; set; }
     }
 }

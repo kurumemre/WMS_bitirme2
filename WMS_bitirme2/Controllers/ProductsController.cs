@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly WMSDbContext _context;
@@ -119,6 +121,7 @@ namespace WMS_bitirme2.Controllers
         }
 
         // GET: Products/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -137,6 +140,7 @@ namespace WMS_bitirme2.Controllers
         }
 
         // POST: Products/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

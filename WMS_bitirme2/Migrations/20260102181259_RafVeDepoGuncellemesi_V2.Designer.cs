@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMS_bitirme2.Data;
 
@@ -11,9 +12,11 @@ using WMS_bitirme2.Data;
 namespace WMS_bitirme2.Migrations
 {
     [DbContext(typeof(WMSDbContext))]
-    partial class WMSDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102181259_RafVeDepoGuncellemesi_V2")]
+    partial class RafVeDepoGuncellemesi_V2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -435,14 +438,9 @@ namespace WMS_bitirme2.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
-
-                    b.HasIndex("WarehouseId");
 
                     b.ToTable("SalesOrders");
                 });
@@ -518,7 +516,7 @@ namespace WMS_bitirme2.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ShelfId")
+                    b.Property<int>("ShelfId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Tarih")
@@ -747,15 +745,7 @@ namespace WMS_bitirme2.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WMS_bitirme2.Models.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Customer");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("WMS_bitirme2.Models.SalesOrderItem", b =>
@@ -798,7 +788,9 @@ namespace WMS_bitirme2.Migrations
 
                     b.HasOne("WMS_bitirme2.Models.Shelf", "Shelf")
                         .WithMany()
-                        .HasForeignKey("ShelfId");
+                        .HasForeignKey("ShelfId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
 

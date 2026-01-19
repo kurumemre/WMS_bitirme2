@@ -1,0 +1,70 @@
+﻿@model WMS_bitirme2.Models.TransferViewModel
+
+@{
+    ViewData["Title"] = "Depolar Arası Transfer";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fa-solid fa-truck-moving"></i> Hızlı Transfer Formu
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProductId" class="form-label fw-bold"></label>
+                            <select asp-for="ProductId" class="form-select" asp-items="ViewBag.ProductId">
+                                <option value="">-- Transfer Edilecek Ürünü Seçin --</option>
+                            </select>
+                            <span asp-validation-for="ProductId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SourceWarehouseId" class="form-label fw-bold text-danger">Çıkış Deposu (Nereden?)</label>
+                                <select asp-for="SourceWarehouseId" class="form-select" asp-items="ViewBag.WarehouseId">
+                                    <option value="">-- Depo Seçin --</option>
+                                </select>
+                                <span asp-validation-for="SourceWarehouseId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TargetWarehouseId" class="form-label fw-bold text-success">Varış Deposu (Nereye?)</label>
+                                <select asp-for="TargetWarehouseId" class="form-select" asp-items="ViewBag.WarehouseId">
+                                    <option value="">-- Depo Seçin --</option>
+                                </select>
+                                <span asp-validation-for="TargetWarehouseId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Quantity" class="form-label fw-bold">Transfer Adedi</label>
+                            <input asp-for="Quantity" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                            <div class="form-text text-muted">Stoktan düşülecek ve hedef depoya eklenecek miktar.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fa-solid fa-paper-plane"></i> Transferi Başlat
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

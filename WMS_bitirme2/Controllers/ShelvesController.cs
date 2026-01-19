@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class ShelvesController : Controller
     {
         private readonly WMSDbContext _context;

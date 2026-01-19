@@ -1,59 +1,61 @@
 ﻿@model IEnumerable<WMS_bitirme2.Models.StockMovement>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Stok Hareket Geçmişi";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>📦 Stok Hareket Geçmişi</h1>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Ürün
-            </th>
-            <th>
-                Raf
-            </th>
-            <th>
-                Miktar
-            </th>
-            <th>
-                Hareket Tipi
-            </th>
-            <th>
-                Tarih
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Product.Ad)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Shelf.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Miktar)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HareketTipi)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tarih)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Tarih</th>
+                    <th>Ürün</th>
+                    <th>İşlem Tipi</th>
+                    <th>Miktar</th>
+                    <th>Raf / Konum</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+
+                        <td class="fw-bold text-primary">
+                            @Html.DisplayFor(modelItem => item.Product.Ad)
+                        </td>
+
+                        <td>
+                            @if (item.HareketTipi == WMS_bitirme2.Models.MovementType.Giris)
+                            {
+                                <span class="badge bg-success">📥 GİRİŞ (Alım/İade)</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">📤 ÇIKIŞ (Satış/Düzeltme)</span>
+                            }
+                        </td>
+
+                        <td class="fw-bold">@item.Miktar Adet</td>
+
+                        <td>
+                            @if (item.Shelf != null)
+                            {
+                                <span class="badge bg-info text-dark">@item.Shelf.Kod</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">- Rafsız İşlem -</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

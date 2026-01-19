@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class PurchaseOrdersController : Controller
     {
         private readonly WMSDbContext _context;
@@ -32,9 +34,11 @@ namespace WMS_bitirme2.Controllers
             if (id == null) return NotFound();
 
             var purchaseOrder = await _context.PurchaseOrders
-                .Include(p => p.Supplier)       // Tedarikçi ismini görmek için
-                .Include(p => p.Items)          // Siparişin satırlarını (Detayları) görmek için
-                .ThenInclude(i => i.Product)    // Satırdaki Ürünün ismini görmek için
+                .Include(p => p.Supplier)
+                .Include(p => p.Items)            // Ürünleri getir
+                    .ThenInclude(i => i.Product)  // Ürün detaylarını getir
+                .Include(p => p.Items)            // Tekrar Items üzerinden...
+                    .ThenInclude(i => i.Shelf)    // ✅ BU SATIR ŞART: Raf bilgisini getir!
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (purchaseOrder == null) return NotFound();
@@ -46,6 +50,7 @@ namespace WMS_bitirme2.Controllers
         public IActionResult Create()
         {
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name");
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad");
             return View();
         }
 
@@ -54,15 +59,20 @@ namespace WMS_bitirme2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,OrderCode,SupplierId,OrderDate,Status,Notes")] PurchaseOrder purchaseOrder)
+        public async Task<IActionResult> Create([Bind("Id,OrderCode,SupplierId,OrderDate,Status,Notes,WarehouseId")] PurchaseOrder purchaseOrder)
         {
+            // Bind içine WarehouseId eklendiği için artık veri doğru gelecek.
+
             if (ModelState.IsValid)
             {
                 _context.Add(purchaseOrder);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // Eğer hata olursa dropdownları tekrar dolduruyoruz
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name", purchaseOrder.SupplierId);
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad", purchaseOrder.WarehouseId); // Burayı da düzelttim
             return View(purchaseOrder);
         }
 
@@ -86,10 +96,9 @@ namespace WMS_bitirme2.Controllers
         // POST: PurchaseOrders/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        // POST: PurchaseOrders/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,OrderCode,SupplierId,OrderDate,Status,Notes")] PurchaseOrder purchaseOrder)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,OrderCode,SupplierId,OrderDate,Status,Notes,WarehouseId")] PurchaseOrder purchaseOrder)
         {
             if (id != purchaseOrder.Id)
             {
@@ -102,13 +111,13 @@ namespace WMS_bitirme2.Controllers
                 {
                     // 1. ESKİ DURUMU ÖĞREN
                     var eskiSiparis = await _context.PurchaseOrders
-                                            .AsNoTracking()
-                                            .FirstOrDefaultAsync(x => x.Id == id);
+                                                    .AsNoTracking()
+                                                    .FirstOrDefaultAsync(x => x.Id == id);
 
                     // Ürünleri hafızaya al (Hem eklerken hem çıkarırken lazım olacak)
                     var siparisDetaylari = _context.PurchaseOrderItems
-                                           .Where(x => x.PurchaseOrderId == id)
-                                           .ToList();
+                                                   .Where(x => x.PurchaseOrderId == id)
+                                                   .ToList();
 
                     // ---------------------------------------------------------
                     // SENARYO A: Mal Kabul Yapılıyor (Stok ARTIR +)
@@ -122,8 +131,19 @@ namespace WMS_bitirme2.Controllers
                             var urun = await _context.Products.FindAsync(kalem.ProductId);
                             if (urun != null)
                             {
-                                urun.StokMiktari += kalem.Quantity; // ARTIR
+                                urun.StokMiktari += kalem.Quantity;
                                 _context.Update(urun);
+
+                                // ✅ YENİ: STOK HAREKETİ KAYDET (GİRİŞ)
+                                var hareket = new StockMovement
+                                {
+                                    ProductId = kalem.ProductId,
+                                    ShelfId = kalem.ShelfId, // Alımda raf bellidir
+                                    Miktar = kalem.Quantity,
+                                    HareketTipi = MovementType.Giris,
+                                    Tarih = DateTime.Now
+                                };
+                                _context.Add(hareket); // Logu veritabanına ekle
                             }
                         }
                     }
@@ -140,8 +160,19 @@ namespace WMS_bitirme2.Controllers
                             var urun = await _context.Products.FindAsync(kalem.ProductId);
                             if (urun != null)
                             {
-                                urun.StokMiktari -= kalem.Quantity; // AZALT (Geri Al)
+                                urun.StokMiktari -= kalem.Quantity;
                                 _context.Update(urun);
+
+                                // ✅ YENİ: STOK HAREKETİ KAYDET (ÇIKIŞ - DÜZELTME)
+                                var hareket = new StockMovement
+                                {
+                                    ProductId = kalem.ProductId,
+                                    ShelfId = kalem.ShelfId,
+                                    Miktar = kalem.Quantity,
+                                    HareketTipi = MovementType.Cikis, // Giren malı geri çıktık
+                                    Tarih = DateTime.Now
+                                };
+                                _context.Add(hareket);
                             }
                         }
                     }
@@ -153,13 +184,21 @@ namespace WMS_bitirme2.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PurchaseOrderExists(purchaseOrder.Id)) return NotFound();
-                    else throw;
+                    if (!PurchaseOrderExists(purchaseOrder.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
 
+            // Hata durumunda dropdownları doldur (Buraya WarehouseId'yi de ekledim, eksikti)
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name", purchaseOrder.SupplierId);
+            ViewData["WarehouseId"] = new SelectList(_context.Warehouses, "Id", "Ad", purchaseOrder.WarehouseId); // EKLENDİ
             return View(purchaseOrder);
         }
 

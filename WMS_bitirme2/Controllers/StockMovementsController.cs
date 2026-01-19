@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class StockMovementsController : Controller
     {
         private readonly WMSDbContext _context;
@@ -22,12 +24,13 @@ namespace WMS_bitirme2.Controllers
         // GET: StockMovements
         public async Task<IActionResult> Index()
         {
-            // Include komutları: "Hareketleri getirirken, Ürün ve Raf detaylarını da yanına al"
+            // Ürün ve Raf bilgilerini birbirine bağlayarak getir
             var wMSDbContext = _context.StockMovements
-                .Include(s => s.Product)
-                .Include(s => s.Shelf);
+                .Include(s => s.Product)  // Ürün ismini görmek için
+                .Include(s => s.Shelf);   // Raf ismini görmek için
 
-            return View(await wMSDbContext.ToListAsync());
+            // Tarihe göre en yeniden eskiye sırala
+            return View(await wMSDbContext.OrderByDescending(x => x.Tarih).ToListAsync());
         }
 
         // GET: StockMovements/Details/5

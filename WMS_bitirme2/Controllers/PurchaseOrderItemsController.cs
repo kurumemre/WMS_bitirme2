@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WMS_bitirme2.Data;
 using WMS_bitirme2.Models;
+using WMS_bitirme2.Helpers;
 
 namespace WMS_bitirme2.Controllers
 {
+    [Authorize]
     public class PurchaseOrderItemsController : Controller
     {
         private readonly WMSDbContext _context;
@@ -63,20 +66,64 @@ namespace WMS_bitirme2.Controllers
         // POST: PurchaseOrderItems/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,PurchaseOrderId,ProductId,Quantity,UnitPrice")] PurchaseOrderItem purchaseOrderItem)
+        // 1. DİKKAT: "ShelfId"yi buraya ekledim, yoksa elle seçilse bile 0 gelir!
+        public async Task<IActionResult> Create([Bind("Id,PurchaseOrderId,ProductId,Quantity,UnitPrice,ShelfId")] PurchaseOrderItem purchaseOrderItem)
         {
+            // -----------------------------------------------------------------------
+            // 🧠 AKILLI RAF SİSTEMİ (SMART SHELF) ENTEGRASYONU
+            // -----------------------------------------------------------------------
+
+            // Eğer kullanıcı raf seçmediyse (Değer 0 veya null ise) sistem kendisi bulsun
+            if (purchaseOrderItem.ShelfId == 0)
+            {
+                // 1. Siparişin hangi depoya ait olduğunu bulmamız lazım
+                var siparis = await _context.PurchaseOrders.FindAsync(purchaseOrderItem.PurchaseOrderId);
+
+                if (siparis != null)
+                {
+                    // 2. Helper sınıfımızı çağırıyoruz
+                    var helper = new WMS_bitirme2.Helpers.ShelfSuggestionHelper(_context);
+
+                    // 3. Öneri İstiyoruz (Senin modelinde Miktar -> Quantity imiş, onu düzelttim)
+                    int onerilenRafId = helper.OneriGetir(purchaseOrderItem.ProductId, purchaseOrderItem.Quantity, siparis.WarehouseId);
+
+                    // 4. Helper bir raf buldu mu?
+                    if (onerilenRafId != 0)
+                    {
+                        // Bulduysa, siparişin rafını buna eşitle
+                        purchaseOrderItem.ShelfId = onerilenRafId;
+
+                        // Kritik Nokta: Rafı kodla atadığımız için, MVC'nin "Raf boş olamaz" hatasını siliyoruz
+                        ModelState.Remove("ShelfId");
+                    }
+                    else
+                    {
+                        // Bulamadıysa kullanıcıya hata mesajı göster
+                        ModelState.AddModelError("ShelfId", "Otomatik yerleştirme için uygun kapasiteli boş raf bulunamadı! Lütfen elle seçiniz.");
+                    }
+                }
+            }
+            // -----------------------------------------------------------------------
+            // 🧠 BİTİŞ
+            // -----------------------------------------------------------------------
+
             if (ModelState.IsValid)
             {
                 _context.Add(purchaseOrderItem);
                 await _context.SaveChangesAsync();
 
-                // DİKKAT: İş bitince genel listeye değil, geldiğimiz Siparişin detayına dönüyoruz 
+                // Senin orijinal yönlendirme kodun (Detay sayfasına geri dön)
                 return RedirectToAction("Details", "PurchaseOrders", new { id = purchaseOrderItem.PurchaseOrderId });
             }
 
+            // --- HATA DURUMUNDA EKRANI TEKRAR DOLDURMA ---
+
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Ad", purchaseOrderItem.ProductId);
 
-            // Hata olursa ID kaybolmasın diye tekrar gönderiyoruz
+            // Eğer hata aldıysak Raf listesini de dolduralım ki kullanıcı elle seçebilsin
+            ViewData["ShelfId"] = new SelectList(_context.Shelves, "Id", "Kod", purchaseOrderItem.ShelfId);
+
+            // ID kaybolmasın diye tekrar gönderiyoruz
             ViewBag.PurchaseOrderId = purchaseOrderItem.PurchaseOrderId;
 
             return View(purchaseOrderItem);

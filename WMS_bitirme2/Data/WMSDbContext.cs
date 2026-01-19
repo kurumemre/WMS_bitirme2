@@ -44,5 +44,28 @@ namespace WMS_bitirme2.Data
 
         // SalesOrderItem -> SalesOrderItems
         public DbSet<SalesOrderItem> SalesOrderItems { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder); // Bunu silme sakın!
+
+            // --- SORUNU ÇÖZEN KOD BAŞLANGICI ---
+
+            // PurchaseOrder (Sipariş) ile Warehouse (Depo) arasındaki ilişki
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(p => p.Warehouse)
+                .WithMany() // Bir deponun çok siparişi olur
+                .HasForeignKey(p => p.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict); // 👈 İŞTE ÇÖZÜM: Depo silinirse siparişleri silme!
+
+            // Aynı hatayı PurchaseOrderItem (Kalemler) ve Shelf (Raf) için de alabilirsin, onu da sağlama alalım:
+            modelBuilder.Entity<PurchaseOrderItem>()
+                .HasOne(p => p.Shelf)
+                .WithMany()
+                .HasForeignKey(p => p.ShelfId)
+                .OnDelete(DeleteBehavior.Restrict); // 👈 Raf silinirse, içindeki sipariş kaydını silme!
+
+            // --- SORUNU ÇÖZEN KOD BİTİŞİ ---
+        }
     }
 }

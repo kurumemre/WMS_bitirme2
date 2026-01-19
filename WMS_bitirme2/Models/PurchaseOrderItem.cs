@@ -28,5 +28,8 @@ namespace WMS_bitirme2.Models
         // Toplam Tutar (Miktar * Fiyat) - Veritabanında tutmaya gerek yok, hesaplanır
         // Ama ekranda göstermek için property ekleyebiliriz
         public decimal LineTotal => Quantity * UnitPrice;
+
+        public int ShelfId { get; set; }
+        public Shelf? Shelf { get; set; }
     }
 }

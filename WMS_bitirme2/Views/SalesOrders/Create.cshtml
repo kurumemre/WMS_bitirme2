@@ -22,6 +22,12 @@
                 <select asp-for="CustomerId" class ="form-control" asp-items="ViewBag.CustomerId"></select>
             </div>
             <div class="form-group">
+                <label asp-for="WarehouseId" class="control-label">Çıkış Yapılacak Depo</label>
+                <select asp-for="WarehouseId" class="form-control" asp-items="ViewBag.WarehouseId">
+                    <option value="">-- Depo Seçiniz --</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label asp-for="OrderDate" class="control-label"></label>
                 <input asp-for="OrderDate" class="form-control" />
                 <span asp-validation-for="OrderDate" class="text-danger"></span>
